@@ -1,4 +1,4 @@
-package teamtailor-integration-go
+package teamtailorgo
 
 import "net/http"
 
@@ -15,7 +15,7 @@ type TeamTailor struct {
 // Create TeamTailor instance
 func NewTeamTailor(authToken string) TeamTailor {
 	version := "20161108"
-	api := "http://localhost:5000/api/teamtailor/"
+	api := "https://api.teamtailor.com/v1/"
 
 	return TeamTailor{api, authToken, version}
 }

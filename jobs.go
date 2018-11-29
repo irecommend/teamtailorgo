@@ -1,1 +1,1 @@
-package teamtailor-integration-go
+package teamtailorgo
