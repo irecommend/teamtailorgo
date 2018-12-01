@@ -13,6 +13,7 @@ type TeamTailor struct {
 }
 
 // Create TeamTailor instance
+// TODO: Check token validity when creating TT instance
 func NewTeamTailor(authToken string) TeamTailor {
 	version := "20161108"
 	api := "https://api.teamtailor.com/v1/"

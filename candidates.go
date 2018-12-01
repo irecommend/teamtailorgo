@@ -16,6 +16,10 @@ type MarshalIdentifier interface {
 	GetID() string
 }
 
+type UnmarshalIdentifier interface {
+	SetID(string) error
+}
+
 type Candidate struct {
 	Email       string    `json:"email" jsonapi:"email"`
 	Connected   bool      `json:"connected" jsonapi:"connected"`
@@ -39,6 +43,14 @@ type CandidateJSONApi struct {
 type CandidateConverted struct {
 	Type      string     `json:"type"`
 	Candidate *Candidate `json:"attributes"`
+}
+
+type CandidateResponseData struct {
+	ID string `json:"id"`
+}
+
+type CandidateResponse struct {
+	Data CandidateResponseData `json:"data"`
 }
 
 func (c Candidate) GetID() string {
@@ -71,13 +83,12 @@ func candidateToJSON(cand Candidate) []byte {
 }
 
 // PostCandidate creates and executes a POST-request to the TeamTailor API and returns the resposne body as a []byte
-func (t *TeamTailor) PostCandidate(c Candidate) ([]byte, error) {
+func (t *TeamTailor) PostCandidate(c Candidate) (CandidateResponse, error) {
 	client := &http.Client{}
 
 	// TODO: Check token validity
 
 	cand := candidateToJSON(c)
-	fmt.Println(string(cand))
 	postData := bytes.NewReader(cand)
 
 	req, _ := http.NewRequest("POST", t.ApiHost+"candidates", postData)
@@ -92,9 +103,17 @@ func (t *TeamTailor) PostCandidate(c Candidate) ([]byte, error) {
 
 	body, err := ioutil.ReadAll(resp.Body)
 
+	var rc CandidateResponse
+
+	err = json.Unmarshal(body, &rc)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	defer resp.Body.Close()
 
-	return body, nil
+	return rc, nil
 
 }
 
