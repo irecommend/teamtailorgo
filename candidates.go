@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"time"
 
@@ -16,10 +15,6 @@ type MarshalIdentifier interface {
 	GetID() string
 }
 
-type UnmarshalIdentifier interface {
-	SetID(string) error
-}
-
 type Candidate struct {
 	Email       string    `json:"email" jsonapi:"email"`
 	Connected   bool      `json:"connected" jsonapi:"connected"`
@@ -27,6 +22,7 @@ type Candidate struct {
 	Firstname   string    `json:"first-name" jsonapi:"first-name"`
 	Lastname    string    `json:"last-name" jsonapi:"last-name"`
 	LinkedinUID string    `json:"linkedin-uid" jsonapi:"linkedin-uid"`
+	LinkedinURL string    `json:"linkedin-url" jsonapi:"linkedin-url"`
 	FacebookUID string    `json:"facebook-id" jsonapi:"facebook-id"`
 	Phone       string    `json:"phone" jsonapi:"phone"`
 	Picture     string    `json:"picture" jsonapi:"picture"`
@@ -46,9 +42,40 @@ type CandidateConverted struct {
 }
 
 type CandidateResponseData struct {
-	ID string `json:"id"`
+	ID         string               `json:"id"`
+	Type       string               `json:"type"`
+	Links      *Links               `json:"links"`
+	Attributes *CandidateAttributes `json:"attributes"`
 }
 
+type Links struct {
+	Self string `json:"self"`
+}
+
+type CandidateAttributes struct {
+	Email           string    `json:"email" jsonapi:"email"`
+	Connected       bool      `json:"connected" jsonapi:"connected"`
+	Created         time.Time `json:"created-at" jsonapi:"created-at"` //TODO: Should be date format in json
+	Firstname       string    `json:"first-name" jsonapi:"first-name"`
+	Lastname        string    `json:"last-name" jsonapi:"last-name"`
+	LinkedinUID     string    `json:"linkedin-uid" jsonapi:"linkedin-uid"`
+	LinkedinURL     string    `json:"linkedin-url" jsonapi:"linkedin-url"`
+	FacebookUID     string    `json:"facebook-id" jsonapi:"facebook-id"`
+	Phone           string    `json:"phone" jsonapi:"phone"`
+	Picture         string    `json:"picture" jsonapi:"picture"`
+	Pitch           string    `json:"pitch" jsonapi:"pitch"`
+	Sourced         bool      `json:"sourced" jsonapi:"sourced"`
+	Tags            []string  `json:"tags" jsonapi:"tags"`
+	UpdatedAt       time.Time `json:"updated-at" jsonapi:"updated-at"`
+	ReferringSite   string    `json:"referring-site" jsonapi:"referringsite"`
+	ReferringURL    string    `json:"referring-url" jsonapi:"referring-url"`
+	Resume          string    `json:"resume" jsonapi:"resume"`
+	Unsubscribed    bool      `json:"unsubscribed" jsonapi:"unsubscribed"`
+	FacebookProfile string    `json:"facebook-profile" jsonapi:"facebook-profile"`
+	LinkedinProfile string    `json:"linkedin-profile" jsonapi:"linkedin-profile"`
+}
+
+// TODO: RETURN EVERYTHING FROM PACKAGE
 type CandidateResponse struct {
 	Data CandidateResponseData `json:"data"`
 }
@@ -90,6 +117,7 @@ func (t *TeamTailor) PostCandidate(c Candidate) (CandidateResponse, error) {
 
 	cand := candidateToJSON(c)
 	postData := bytes.NewReader(cand)
+	var rc CandidateResponse
 
 	req, _ := http.NewRequest("POST", t.ApiHost+"candidates", postData)
 	req.Header.Set("Authorization", "Token token="+t.Authorization)
@@ -98,17 +126,16 @@ func (t *TeamTailor) PostCandidate(c Candidate) (CandidateResponse, error) {
 
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Fatal(err)
+		return rc, err
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)
-
-	var rc CandidateResponse
+	// TODO: ERROR HANDLING
 
 	err = json.Unmarshal(body, &rc)
 
 	if err != nil {
-		log.Fatal(err)
+		return rc, err
 	}
 
 	defer resp.Body.Close()
