@@ -113,8 +113,6 @@ func candidateToJSON(cand Candidate) []byte {
 func (t *TeamTailor) PostCandidate(c Candidate) (CandidateResponse, error) {
 	client := &http.Client{}
 
-	// TODO: Check token validity
-
 	cand := candidateToJSON(c)
 	postData := bytes.NewReader(cand)
 	var rc CandidateResponse
