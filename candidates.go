@@ -11,10 +11,6 @@ import (
 	"github.com/manyminds/api2go/jsonapi"
 )
 
-type MarshalIdentifier interface {
-	GetID() string
-}
-
 type Candidate struct {
 	Email       string    `json:"email" jsonapi:"email"`
 	Connected   bool      `json:"connected" jsonapi:"connected"`
