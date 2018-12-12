@@ -5,21 +5,26 @@ import (
 	"net/http"
 )
 
+const (
+	baseUrl     = "https://api.teamtailor.com/v1/"
+	apiVersion  = "20161108"
+	contentType = "application/vnd.api+json"
+)
+
 type Authorization interface {
 	CheckAuthorization(h http.Handler) http.Handler
 }
 
 type TeamTailor struct {
-	ApiHost       string `json:"api-host" bson:"api-host"`
-	Authorization string `json:"authorization" bson:"authorization"`
-	APIversion    string `json:"X-Api-Version" bson:"X-Api-Version"`
+	APIHost    string `json:"api-host" bson:"api-host"`
+	Token      string `json:"token" bson:"token"`
+	APIversion string `json:"X-Api-Version" bson:"X-Api-Version"`
+	HTTPClient *http.Client
 }
 
 // Create TeamTailor instance
 // TODO: Check token validity when creating TT instance
 func NewTeamTailor(authToken string) (TeamTailor, error) {
-	version := "20161108"
-	api := "https://api.teamtailor.com/v1/"
 
 	err := CheckAuthorization(authToken)
 	if err != nil {
@@ -27,7 +32,7 @@ func NewTeamTailor(authToken string) (TeamTailor, error) {
 		return TeamTailor{}, err
 	}
 
-	return TeamTailor{api, authToken, version}, nil
+	return TeamTailor{baseUrl, authToken, apiVersion, &http.Client{}}, nil
 }
 
 // CheckAuthorization checks token validity and if it has the correct permissions
@@ -35,10 +40,10 @@ func NewTeamTailor(authToken string) (TeamTailor, error) {
 func CheckAuthorization(token string) error {
 	client := &http.Client{}
 
-	req, _ := http.NewRequest("GET", "https://api.teamtailor.com/v1/departments", nil)
+	req, _ := http.NewRequest("GET", baseUrl+"departments", nil)
 	req.Header.Set("Authorization", "Token token="+token)
-	req.Header.Set("X-Api-Version", "20161108")
-	req.Header.Set("Content-Type", "application/vnd.api+json")
+	req.Header.Set("X-Api-Version", apiVersion)
+	req.Header.Set("Content-Type", contentType)
 
 	resp, err := client.Do(req)
 	if err != nil {

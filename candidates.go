@@ -111,18 +111,17 @@ func candidateToJSON(cand Candidate) []byte {
 
 // PostCandidate creates and executes a POST-request to the TeamTailor API and returns the resposne body as a []byte
 func (t *TeamTailor) PostCandidate(c Candidate) (CandidateResponse, error) {
-	client := &http.Client{}
 
 	cand := candidateToJSON(c)
 	postData := bytes.NewReader(cand)
 	var rc CandidateResponse
 
-	req, _ := http.NewRequest("POST", t.ApiHost+"candidates", postData)
-	req.Header.Set("Authorization", "Token token="+t.Authorization)
-	req.Header.Set("X-Api-Version", t.APIversion)
-	req.Header.Set("Content-Type", "application/vnd.api+json")
+	req, _ := http.NewRequest("POST", baseUrl+"candidates", postData)
+	req.Header.Set("Authorization", "Token token="+t.Token)
+	req.Header.Set("X-Api-Version", apiVersion)
+	req.Header.Set("Content-Type", contentType)
 
-	resp, err := client.Do(req)
+	resp, err := t.HTTPClient.Do(req)
 	if err != nil {
 		return rc, err
 	}
