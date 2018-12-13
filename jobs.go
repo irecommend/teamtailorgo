@@ -9,6 +9,7 @@ import (
 
 type Job struct {
 	ID          string
+	Type        string   `json:"type"`
 	Body        string   `json:"body"`
 	EndDate     string   `json:"end-date"`
 	HumanStatus string   `json:"human-status"`
@@ -26,7 +27,7 @@ func (t TeamTailor) GetAllJobs() ([]Job, error) {
 
 	var jobs []Job
 
-	req, _ := http.NewRequest("GET", baseUrl+"jobs", nil)
+	req, _ := http.NewRequest("GET", baseURL+"jobs", nil)
 	req.Header.Set("Authorization", "Token token="+t.Token)
 	req.Header.Set("X-Api-Version", apiVersion)
 	req.Header.Set("Content-Type", contentType)
@@ -58,7 +59,7 @@ func (j Job) GetID() string {
 	return string(j.ID)
 }
 
-func (j *Job) SetToOneReferenceID(name, ID string) error {
+func (j Job) SetToOneReferenceID(name, ID string) error {
 	j.ID = ID
 	return nil
 }

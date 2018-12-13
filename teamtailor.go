@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	baseUrl     = "https://api.teamtailor.com/v1/"
+	baseURL     = "https://api.teamtailor.com/v1/"
 	apiVersion  = "20161108"
 	contentType = "application/vnd.api+json"
 )
@@ -32,7 +32,7 @@ func NewTeamTailor(authToken string) (TeamTailor, error) {
 		return TeamTailor{}, err
 	}
 
-	return TeamTailor{baseUrl, authToken, apiVersion, &http.Client{}}, nil
+	return TeamTailor{baseURL, authToken, apiVersion, &http.Client{}}, nil
 }
 
 // CheckAuthorization checks token validity and if it has the correct permissions
@@ -40,7 +40,7 @@ func NewTeamTailor(authToken string) (TeamTailor, error) {
 func CheckAuthorization(token string) error {
 	client := &http.Client{}
 
-	req, _ := http.NewRequest("GET", baseUrl+"departments", nil)
+	req, _ := http.NewRequest("GET", baseURL+"departments", nil)
 	req.Header.Set("Authorization", "Token token="+token)
 	req.Header.Set("X-Api-Version", apiVersion)
 	req.Header.Set("Content-Type", contentType)
