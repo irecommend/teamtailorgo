@@ -50,6 +50,10 @@ func (t TeamTailor) GetAllJobs() ([]Job, error) {
 	return jobs, nil
 }
 
+// func GetJobApplicationStage
+
+// JSONAPI functions
+
 func (j *Job) SetID(ID string) error {
 	j.ID = ID
 	return nil

@@ -103,7 +103,6 @@ func (t *TeamTailor) PostCandidate(c CandidateRequest) (Candidate, error) {
 		return rc, err
 	}
 
-	// body, err := ioutil.ReadAll(resp.Body)
 	// TODO: ERROR HANDLING
 
 	err = japi.UnmarshalPayload(resp.Body, &rc)
@@ -143,6 +142,10 @@ func (t *TeamTailor) GetCandidate(id string) (Candidate, error) {
 // func GetCandidates
 
 // func DeleteCandidate
+
+// func GetCandidateJobApplications
+
+// func CreateCandidateJobApplication
 
 // func SetHeaders
 func (t *TeamTailor) SetHeaders(r *http.Request) {
