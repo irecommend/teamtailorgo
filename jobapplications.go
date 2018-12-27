@@ -86,7 +86,7 @@ func (t TeamTailor) CreateJobApplication(idjob string, idcand string) (JobApplic
 		return ja, err
 	}
 	if resp.StatusCode != 201 {
-		return js, errors.New("Failed to create job application")
+		return ja, errors.New("Failed to create job application")
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)

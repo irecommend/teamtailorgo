@@ -8,6 +8,7 @@ import (
 
 	japi "github.com/google/jsonapi"
 	"github.com/manyminds/api2go/jsonapi"
+	"github.com/pkg/errors"
 )
 
 type CandidateRequest struct {
@@ -61,7 +62,7 @@ type Candidate struct {
 }
 
 // Convert Candidate struct into JSON
-func candidateToJSON(cand CandidateRequest) []byte, error {
+func candidateToJSON(cand CandidateRequest) ([]byte, error) {
 
 	// Use external package that sadly forces and ID on the JSON object
 	data, err := jsonapi.Marshal(cand)
@@ -87,6 +88,7 @@ func candidateToJSON(cand CandidateRequest) []byte, error {
 }
 
 // PostCandidate creates and executes a POST-request to the TeamTailor API and returns the resposne body as a []byte
+// TODO: Should return existing candidate if that is the case
 func (t *TeamTailor) PostCandidate(c CandidateRequest) (Candidate, error) {
 
 	var rc Candidate
@@ -96,10 +98,7 @@ func (t *TeamTailor) PostCandidate(c CandidateRequest) (Candidate, error) {
 		return rc, errors.New("Invalid structure of provided candidate")
 	}
 
-	postData, err := bytes.NewReader(cand)
-	if err != nil {
-		return rc, err
-	}
+	postData := bytes.NewReader(cand)
 
 	req, _ := http.NewRequest("POST", baseURL+"candidates", postData)
 	req.Header.Set("Authorization", "Token token="+t.Token)
@@ -110,6 +109,8 @@ func (t *TeamTailor) PostCandidate(c CandidateRequest) (Candidate, error) {
 	if err != nil {
 		return rc, err
 	}
+	// TODO: IF CANDIDATE EXISTS WE NEED TO GET ALL CANDIDATES AND FILTER OUT THE ONE WITH
+	// THE RIGHT EMAIL TO GET THE ID (STATUS: 422)
 	if resp.StatusCode != 201 {
 		return rc, errors.New("Failed posting candidate")
 	}
