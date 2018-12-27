@@ -40,7 +40,7 @@ type Candidate struct {
 	ID              string   `json:"-" jsonapi:"primary,candidates"`
 	Email           string   `json:"email" jsonapi:"attr,email"`
 	Connected       bool     `json:"connected" jsonapi:"attr,connected"`
-	Created         string   `json:"created-at" jsonapi:"attr,created-at"` //TODO: Should be date format in json
+	Created         string   `json:"created-at" jsonapi:"attr,created-at"`
 	Firstname       string   `json:"first-name" jsonapi:"attr,first-name"`
 	Lastname        string   `json:"last-name" jsonapi:"attr,last-name"`
 	LinkedinUID     string   `json:"linkedin-uid" jsonapi:"attr,linkedin-uid"`
@@ -61,52 +61,60 @@ type Candidate struct {
 }
 
 // Convert Candidate struct into JSON
-func candidateToJSON(cand CandidateRequest) []byte {
+func candidateToJSON(cand CandidateRequest) []byte, error {
 
 	// Use external package that sadly forces and ID on the JSON object
 	data, err := jsonapi.Marshal(cand)
 	if err != nil {
-		return nil
+		return nil, err
 	}
 
 	// Unmarshal back to custom struct to remove ID
 	unmrsh := CandidateJSONApi{}
 	err = json.Unmarshal(data, &unmrsh)
 	if err != nil {
-		return nil
+		return nil, err
 	}
 	unmrsh.Data.Type = "candidates"
 
 	// Marshal custom struct
 	postData, err := json.Marshal(unmrsh)
 	if err != nil {
-		return nil
+		return nil, err
 	}
 
-	return postData
+	return postData, nil
 }
 
 // PostCandidate creates and executes a POST-request to the TeamTailor API and returns the resposne body as a []byte
 func (t *TeamTailor) PostCandidate(c CandidateRequest) (Candidate, error) {
 
-	cand := candidateToJSON(c)
-	postData := bytes.NewReader(cand)
+	var rc Candidate
+
+	cand, err := candidateToJSON(c)
+	if err != nil {
+		return rc, errors.New("Invalid structure of provided candidate")
+	}
+
+	postData, err := bytes.NewReader(cand)
+	if err != nil {
+		return rc, err
+	}
 
 	req, _ := http.NewRequest("POST", baseURL+"candidates", postData)
 	req.Header.Set("Authorization", "Token token="+t.Token)
 	req.Header.Set("X-Api-Version", apiVersion)
 	req.Header.Set("Content-Type", contentType)
 
-	var rc Candidate
 	resp, err := t.HTTPClient.Do(req)
 	if err != nil {
 		return rc, err
 	}
-
-	// TODO: ERROR HANDLING
+	if resp.StatusCode != 201 {
+		return rc, errors.New("Failed posting candidate")
+	}
 
 	err = japi.UnmarshalPayload(resp.Body, &rc)
-
 	if err != nil {
 		return rc, err
 	}
@@ -167,4 +175,8 @@ func (c CandidateRequest) GetID() string {
 func (c *Candidate) SetID(ID string) error {
 	c.ID = ID
 	return nil
+}
+
+func (c Candidate) GetID() string {
+	return c.ID
 }

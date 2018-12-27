@@ -38,7 +38,9 @@ func (t TeamTailor) GetAllJobs() ([]Job, error) {
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)
-	// TODO: ERROR HANDLING
+	if err != nil {
+		return jobs, err
+	}
 
 	err = jsonapi.Unmarshal(body, &jobs)
 	if err != nil {
@@ -50,7 +52,35 @@ func (t TeamTailor) GetAllJobs() ([]Job, error) {
 	return jobs, nil
 }
 
-// func GetJobApplicationStage
+// GetJob
+func (t TeamTailor) GetJob(id string) (Job, error) {
+
+	var job Job
+
+	req, _ := http.NewRequest("GET", baseURL+"jobs/"+id, nil)
+	req.Header.Set("Authorization", "Token token="+t.Token)
+	req.Header.Set("X-Api-Version", apiVersion)
+	req.Header.Set("Content-Type", contentType)
+
+	resp, err := t.HTTPClient.Do(req)
+	if err != nil {
+		return job, err
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return job, err
+	}
+
+	err = jsonapi.Unmarshal(body, &job)
+	if err != nil {
+		return job, err
+	}
+
+	defer resp.Body.Close()
+
+	return job, nil
+}
 
 // JSONAPI functions
 
@@ -60,7 +90,7 @@ func (j *Job) SetID(ID string) error {
 }
 
 func (j Job) GetID() string {
-	return string(j.ID)
+	return j.ID
 }
 
 func (j Job) SetToOneReferenceID(name, ID string) error {
