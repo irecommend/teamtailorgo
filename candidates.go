@@ -3,7 +3,9 @@ package teamtailorgo
 import (
 	"bytes"
 	"encoding/json"
+	"log"
 	"net/http"
+	"reflect"
 	"time"
 
 	japi "github.com/google/jsonapi"
@@ -89,13 +91,13 @@ func candidateToJSON(cand CandidateRequest) ([]byte, error) {
 
 // PostCandidate creates and executes a POST-request to the TeamTailor API and returns the resposne body as a []byte
 // TODO: Should return existing candidate if that is the case
-func (t *TeamTailor) PostCandidate(c CandidateRequest) (Candidate, error) {
+func (t *TeamTailor) PostCandidate(c CandidateRequest) (*Candidate, error) {
 
 	var rc Candidate
 
 	cand, err := candidateToJSON(c)
 	if err != nil {
-		return rc, errors.New("Invalid structure of provided candidate")
+		return &rc, errors.New("Invalid structure of provided candidate")
 	}
 
 	postData := bytes.NewReader(cand)
@@ -107,23 +109,33 @@ func (t *TeamTailor) PostCandidate(c CandidateRequest) (Candidate, error) {
 
 	resp, err := t.HTTPClient.Do(req)
 	if err != nil {
-		return rc, err
-	}
-	// TODO: IF CANDIDATE EXISTS WE NEED TO GET ALL CANDIDATES AND FILTER OUT THE ONE WITH
-	// THE RIGHT EMAIL TO GET THE ID (STATUS: 422)
-	if resp.StatusCode != 201 {
-		return rc, errors.New("Failed posting candidate")
+		return &rc, err
 	}
 
-	err = japi.UnmarshalPayload(resp.Body, &rc)
-	if err != nil {
-		return rc, err
+	// New candidate posted
+	if resp.StatusCode == 201 {
+		err = japi.UnmarshalPayload(resp.Body, &rc)
+		if err != nil {
+			log.Println("ERROR IN UNMARSHAL", err)
+			return &rc, err
+		}
+
+		defer resp.Body.Close()
+
+		return &rc, nil
+	} else if resp.StatusCode == 422 {
+		// Candidate existed in TeamTailor
+		cand, err := t.GetCandidateByEmail(c.Email)
+		if err != nil {
+			return &rc, err
+		}
+
+		// TODO: Update candidate with irec tag
+
+		return cand, nil
+	} else {
+		return &rc, errors.New("Failed posting candidate")
 	}
-
-	defer resp.Body.Close()
-
-	return rc, nil
-
 }
 
 // func GetCandidate
@@ -148,7 +160,65 @@ func (t *TeamTailor) GetCandidate(id string) (Candidate, error) {
 	return cand, nil
 }
 
+// func GetCandidateByEmail
+func (t *TeamTailor) GetCandidateByEmail(email string) (*Candidate, error) {
+
+	var candidate *Candidate
+	// Get candidates
+	candidates, err := t.GetCandidates()
+	if err != nil {
+		return candidate, err
+	}
+
+	// Filter through candidates by email
+	for _, cand := range candidates {
+		if cand.Email == email {
+			candidate = cand
+			break
+		}
+	}
+
+	if candidate.Email == "" {
+		return candidate, errors.New("Could not find existing candidate by email")
+	}
+
+	// Return the one that matches
+	return candidate, nil
+
+}
+
 // func GetCandidates
+func (t *TeamTailor) GetCandidates() ([]*Candidate, error) {
+	var cands []*Candidate
+
+	req, _ := http.NewRequest("GET", baseURL+"candidates", nil)
+	req.Header.Set("Authorization", "Token token="+t.Token)
+	req.Header.Set("X-Api-Version", apiVersion)
+	req.Header.Set("Content-Type", contentType)
+
+	resp, err := t.HTTPClient.Do(req)
+	if err != nil {
+		return cands, err
+	}
+
+	candidates, err := japi.UnmarshalManyPayload(resp.Body, reflect.TypeOf(new(Candidate)))
+	if err != nil {
+		return cands, err
+	}
+
+	for _, candidate := range candidates {
+		c, _ := candidate.(*Candidate)
+		cands = append(cands, c)
+	}
+
+	defer resp.Body.Close()
+
+	return cands, nil
+}
+
+// func (t *TeamTailor) UpdateCandidate(id string) error {
+
+// }
 
 // func DeleteCandidate
 

@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"io/ioutil"
+	"log"
 	"net/http"
 
+	japi "github.com/google/jsonapi"
 	"github.com/manyminds/api2go/jsonapi"
 	"github.com/pkg/errors"
 )
@@ -60,6 +62,14 @@ type JAJobData struct {
 	Type string `json:"type"`
 }
 
+type Stage struct {
+	ID        string `json:"-" jsonapi:"primary,stages"`
+	Created   string `json:"created-at" jsonapi:"attr,created-at"`
+	UpdatedAt string `json:"updated-at" jsonapi:"attr,updated-at"`
+	Name      string `json:"name" jsonapi:"attr,name"`
+	StageType string `json:"stage-type" jsonapi:"attr,stage-type"`
+}
+
 // CreateJobApplication
 func (t TeamTailor) CreateJobApplication(idjob string, idcand string) (JobApplication, error) {
 
@@ -111,6 +121,29 @@ func (t TeamTailor) CreateJobApplication(idjob string, idcand string) (JobApplic
 // TODO: GetJobApplicationsByJob
 
 // TODO: GetJobApplicationStage
+func (t TeamTailor) GetJobApplicationStage(id string) (*Stage, error) {
+
+	var stage Stage
+	log.Println("REQUEST URL", baseURL+"job-applications/"+id+"/stage")
+	req, _ := http.NewRequest("GET", baseURL+"job-applications/"+id+"/stage", nil)
+	t.SetHeaders(req)
+
+	resp, err := t.HTTPClient.Do(req)
+	if err != nil {
+		return &stage, err
+	}
+
+	err = japi.UnmarshalPayload(resp.Body, &stage)
+	if err != nil {
+		log.Println("UNMARSHAL ERROR", err)
+		return &stage, err
+	}
+
+	defer resp.Body.Close()
+
+	log.Println("IN PACKAGE", stage)
+	return &stage, nil
+}
 
 // JSONAPI Functions
 
