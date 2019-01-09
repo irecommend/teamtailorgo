@@ -63,11 +63,12 @@ type JAJobData struct {
 }
 
 type Stage struct {
-	ID        string `json:"-" jsonapi:"primary,stages"`
-	Created   string `json:"created-at" jsonapi:"attr,created-at"`
-	UpdatedAt string `json:"updated-at" jsonapi:"attr,updated-at"`
-	Name      string `json:"name" jsonapi:"attr,name"`
-	StageType string `json:"stage-type" jsonapi:"attr,stage-type"`
+	ID               string `json:"-" jsonapi:"primary,stages"`
+	Created          string `json:"created-at" jsonapi:"attr,created-at"`
+	UpdatedAt        string `json:"updated-at" jsonapi:"attr,updated-at"`
+	Name             string `json:"name" jsonapi:"attr,name"`
+	StageType        string `json:"stage-type" jsonapi:"attr,stage-type"`
+	JobApplicationID string `json:"job-application-id"`
 }
 
 // CreateJobApplication
@@ -135,13 +136,13 @@ func (t TeamTailor) GetJobApplicationStage(id string) (*Stage, error) {
 
 	err = japi.UnmarshalPayload(resp.Body, &stage)
 	if err != nil {
-		log.Println("UNMARSHAL ERROR", err)
 		return &stage, err
 	}
 
+	stage.JobApplicationID = id
+
 	defer resp.Body.Close()
 
-	log.Println("IN PACKAGE", stage)
 	return &stage, nil
 }
 
