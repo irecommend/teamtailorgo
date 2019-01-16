@@ -16,7 +16,7 @@ import (
 type CandidateRequest struct {
 	Email       string    `json:"email" jsonapi:"email"`
 	Connected   bool      `json:"connected" jsonapi:"connected"`
-	Created     time.Time `json:"created-at" jsonapi:"created-at"` //TODO: Should be date format in json
+	Created     time.Time `json:"created-at" jsonapi:"created-at"`
 	Firstname   string    `json:"first-name" jsonapi:"first-name"`
 	Lastname    string    `json:"last-name" jsonapi:"last-name"`
 	LinkedinUID string    `json:"linkedin-uid" jsonapi:"linkedin-uid"`
@@ -25,6 +25,24 @@ type CandidateRequest struct {
 	Phone       string    `json:"phone" jsonapi:"phone"`
 	Picture     string    `json:"picture" jsonapi:"picture"`
 	Pitch       string    `json:"pitch" jsonapi:"pitch"`
+	Sourced     bool      `json:"sourced" jsonapi:"sourced"`
+	Tags        []string  `json:"tags" jsonapi:"tags"`
+	UpdatedAt   time.Time `json:"updated-at" jsonapi:"updated-at"`
+}
+
+type CandidateRequestResume struct {
+	Email       string    `json:"email" jsonapi:"email"`
+	Connected   bool      `json:"connected" jsonapi:"connected"`
+	Created     time.Time `json:"created-at" jsonapi:"created-at"`
+	Firstname   string    `json:"first-name" jsonapi:"first-name"`
+	Lastname    string    `json:"last-name" jsonapi:"last-name"`
+	LinkedinUID string    `json:"linkedin-uid" jsonapi:"linkedin-uid"`
+	LinkedinURL string    `json:"linkedin-url" jsonapi:"linkedin-url"`
+	FacebookUID string    `json:"facebook-id" jsonapi:"facebook-id"`
+	Phone       string    `json:"phone" jsonapi:"phone"`
+	Picture     string    `json:"picture" jsonapi:"picture"`
+	Pitch       string    `json:"pitch" jsonapi:"pitch"`
+	Resume      string    `json:"resume" jsonapi:"resume"`
 	Sourced     bool      `json:"sourced" jsonapi:"sourced"`
 	Tags        []string  `json:"tags" jsonapi:"tags"`
 	UpdatedAt   time.Time `json:"updated-at" jsonapi:"updated-at"`
@@ -89,13 +107,86 @@ func candidateToJSON(cand CandidateRequest) ([]byte, error) {
 	return postData, nil
 }
 
+// Convert Candidate struct into JSON
+func candidateResumeToJSON(cand CandidateRequestResume) ([]byte, error) {
+
+	// Use external package that sadly forces and ID on the JSON object
+	data, err := jsonapi.Marshal(cand)
+	if err != nil {
+		return nil, err
+	}
+
+	// Unmarshal back to custom struct to remove ID
+	unmrsh := CandidateJSONApi{}
+	err = json.Unmarshal(data, &unmrsh)
+	if err != nil {
+		return nil, err
+	}
+	unmrsh.Data.Type = "candidates"
+
+	// Marshal custom struct
+	postData, err := json.Marshal(unmrsh)
+	if err != nil {
+		return nil, err
+	}
+
+	return postData, nil
+}
+
 // PostCandidate creates and executes a POST-request to the TeamTailor API and returns the resposne body as a []byte
-// TODO: Should return existing candidate if that is the case
 func (t *TeamTailor) PostCandidate(c CandidateRequest) (*Candidate, error) {
 
 	var rc Candidate
 
 	cand, err := candidateToJSON(c)
+	if err != nil {
+		return &rc, errors.New("Invalid structure of provided candidate")
+	}
+
+	postData := bytes.NewReader(cand)
+
+	req, _ := http.NewRequest("POST", baseURL+"candidates", postData)
+	req.Header.Set("Authorization", "Token token="+t.Token)
+	req.Header.Set("X-Api-Version", apiVersion)
+	req.Header.Set("Content-Type", contentType)
+
+	resp, err := t.HTTPClient.Do(req)
+	if err != nil {
+		return &rc, err
+	}
+
+	// New candidate posted
+	if resp.StatusCode == 201 {
+		err = japi.UnmarshalPayload(resp.Body, &rc)
+		if err != nil {
+			log.Println("ERROR IN UNMARSHAL", err)
+			return &rc, err
+		}
+
+		defer resp.Body.Close()
+
+		return &rc, nil
+	} else if resp.StatusCode == 422 {
+		// Candidate existed in TeamTailor
+		cand, err := t.GetCandidateByEmail(c.Email)
+		if err != nil {
+			return &rc, err
+		}
+
+		// TODO: Update candidate with irec tag
+
+		return cand, nil
+	} else {
+		return &rc, errors.New("Failed posting candidate")
+	}
+}
+
+// PostCandidateResume executes POST-request with a signedURL to access a candidate's resume
+func (t *TeamTailor) PostCandidateResume(c CandidateRequestResume) (*Candidate, error) {
+
+	var rc Candidate
+
+	cand, err := candidateResumeToJSON(c)
 	if err != nil {
 		return &rc, errors.New("Invalid structure of provided candidate")
 	}
@@ -216,9 +307,15 @@ func (t *TeamTailor) GetCandidates() ([]*Candidate, error) {
 	return cands, nil
 }
 
-// func (t *TeamTailor) UpdateCandidate(id string) error {
+func (t *TeamTailor) UpdateCandidate(c *Candidate) {
+	data, err := jsonapi.Marshal(c)
+	if err != nil {
+		log.Println(err)
+		return
+	}
 
-// }
+	log.Println(string(data))
+}
 
 // func DeleteCandidate
 

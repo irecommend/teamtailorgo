@@ -121,7 +121,7 @@ func (t TeamTailor) CreateJobApplication(idjob string, idcand string) (JobApplic
 
 // TODO: GetJobApplicationsByJob
 
-// TODO: GetJobApplicationStage
+// GetJobApplicationStage returns the stage of a specific job application containing status in recruitment process
 func (t TeamTailor) GetJobApplicationStage(id string) (*Stage, error) {
 
 	var stage Stage
