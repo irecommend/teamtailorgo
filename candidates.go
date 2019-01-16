@@ -30,6 +30,15 @@ type CandidateRequest struct {
 	UpdatedAt   time.Time `json:"updated-at" jsonapi:"updated-at"`
 }
 
+type CandidateJSONApi struct {
+	Data *CandidateConverted `json:"data"`
+}
+
+type CandidateConverted struct {
+	Type      string            `json:"type"`
+	Candidate *CandidateRequest `json:"attributes"`
+}
+
 type CandidateRequestResume struct {
 	Email       string    `json:"email" jsonapi:"email"`
 	Connected   bool      `json:"connected" jsonapi:"connected"`
@@ -48,13 +57,13 @@ type CandidateRequestResume struct {
 	UpdatedAt   time.Time `json:"updated-at" jsonapi:"updated-at"`
 }
 
-type CandidateJSONApi struct {
-	Data *CandidateConverted `json:"data"`
+type CandidateResumeJSONApi struct {
+	Data *CandidateResumeConverted `json:"data"`
 }
 
-type CandidateConverted struct {
-	Type      string            `json:"type"`
-	Candidate *CandidateRequest `json:"attributes"`
+type CandidateResumeConverted struct {
+	Type      string                  `json:"type"`
+	Candidate *CandidateRequestResume `json:"attributes"`
 }
 
 type Candidate struct {
@@ -117,7 +126,7 @@ func candidateResumeToJSON(cand CandidateRequestResume) ([]byte, error) {
 	}
 
 	// Unmarshal back to custom struct to remove ID
-	unmrsh := CandidateJSONApi{}
+	unmrsh := CandidateResumeJSONApi{}
 	err = json.Unmarshal(data, &unmrsh)
 	if err != nil {
 		return nil, err
@@ -337,6 +346,10 @@ func (c *Candidate) SetToOneReferenceID(name, ID string) error {
 }
 
 func (c CandidateRequest) GetID() string {
+	return "0"
+}
+
+func (c CandidateRequestResume) GetID() string {
 	return "0"
 }
 
