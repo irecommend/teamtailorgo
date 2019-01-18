@@ -35,7 +35,7 @@ func NewTeamTailor(authToken string) (TeamTailor, error) {
 }
 
 // CheckAuthorization checks token validity and if it has the correct permissions
-// TODO: Also check if permissions are correct, right now it only Reads and not Write
+// TODO: Also check if permissions are correct, right now it only checks Reads and not Write
 func CheckAuthorization(token string) error {
 	client := &http.Client{}
 

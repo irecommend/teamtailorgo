@@ -182,8 +182,6 @@ func (t *TeamTailor) PostCandidate(c CandidateRequest) (*Candidate, error) {
 			return &rc, err
 		}
 
-		// TODO: Update candidate with irec tag
-
 		return cand, nil
 	} else {
 		return &rc, errors.New("Failed posting candidate")
@@ -229,8 +227,6 @@ func (t *TeamTailor) PostCandidateResume(c CandidateRequestResume) (*Candidate, 
 		if err != nil {
 			return &rc, err
 		}
-
-		// TODO: Update candidate with irec tag
 
 		return cand, nil
 	} else {
@@ -316,14 +312,16 @@ func (t *TeamTailor) GetCandidates() ([]*Candidate, error) {
 	return cands, nil
 }
 
-func (t *TeamTailor) UpdateCandidate(c *Candidate) {
+func (t *TeamTailor) UpdateCandidate(c Candidate) {
+	log.Println("CANDIDATE INPUT: ", c)
+
 	data, err := jsonapi.Marshal(c)
 	if err != nil {
 		log.Println(err)
 		return
 	}
 
-	log.Println(string(data))
+	log.Println("CANDIDATE OUTPUT: ", string(data))
 }
 
 // func DeleteCandidate
