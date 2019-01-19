@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"io/ioutil"
-	"log"
 	"net/http"
 
 	japi "github.com/google/jsonapi"
@@ -125,7 +124,6 @@ func (t TeamTailor) CreateJobApplication(idjob string, idcand string) (JobApplic
 func (t TeamTailor) GetJobApplicationStage(id string) (*Stage, error) {
 
 	var stage Stage
-	log.Println("REQUEST URL", baseURL+"job-applications/"+id+"/stage")
 	req, _ := http.NewRequest("GET", baseURL+"job-applications/"+id+"/stage", nil)
 	t.SetHeaders(req)
 

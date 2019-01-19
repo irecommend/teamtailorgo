@@ -3,7 +3,6 @@ package teamtailorgo
 import (
 	"bytes"
 	"encoding/json"
-	"log"
 	"net/http"
 	"reflect"
 	"time"
@@ -14,20 +13,20 @@ import (
 )
 
 type CandidateRequest struct {
-	Email       string    `json:"email" jsonapi:"email"`
-	Connected   bool      `json:"connected" jsonapi:"connected"`
-	Created     time.Time `json:"created-at" jsonapi:"created-at"`
-	Firstname   string    `json:"first-name" jsonapi:"first-name"`
-	Lastname    string    `json:"last-name" jsonapi:"last-name"`
-	LinkedinUID string    `json:"linkedin-uid" jsonapi:"linkedin-uid"`
-	LinkedinURL string    `json:"linkedin-url" jsonapi:"linkedin-url"`
-	FacebookUID string    `json:"facebook-id" jsonapi:"facebook-id"`
-	Phone       string    `json:"phone" jsonapi:"phone"`
-	Picture     string    `json:"picture" jsonapi:"picture"`
-	Pitch       string    `json:"pitch" jsonapi:"pitch"`
-	Sourced     bool      `json:"sourced" jsonapi:"sourced"`
-	Tags        []string  `json:"tags" jsonapi:"tags"`
-	UpdatedAt   time.Time `json:"updated-at" jsonapi:"updated-at"`
+	Email       string    `json:"email" jsonapi:"attr, email"`
+	Connected   bool      `json:"connected" jsonapi:"attr,connected"`
+	Created     time.Time `json:"created-at" jsonapi:"attr, created-at"`
+	Firstname   string    `json:"first-name" jsonapi:"attr, first-name"`
+	Lastname    string    `json:"last-name" jsonapi:"attr, last-name"`
+	LinkedinUID string    `json:"linkedin-uid" jsonapi:"attr, linkedin-uid"`
+	LinkedinURL string    `json:"linkedin-url" jsonapi:"attr, linkedin-url"`
+	FacebookUID string    `json:"facebook-id" jsonapi:"attr, facebook-id"`
+	Phone       string    `json:"phone" jsonapi:"attr, phone"`
+	Picture     string    `json:"picture" jsonapi:"attr, picture"`
+	Pitch       string    `json:"pitch" jsonapi:"attr, pitch"`
+	Sourced     bool      `json:"sourced" jsonapi:"attr, sourced"`
+	Tags        []string  `json:"tags" jsonapi:"attr, tags"`
+	UpdatedAt   time.Time `json:"updated-at" jsonapi:"attr, updated-at"`
 }
 
 type CandidateJSONApi struct {
@@ -67,27 +66,24 @@ type CandidateResumeConverted struct {
 }
 
 type Candidate struct {
-	ID              string   `json:"-" jsonapi:"primary,candidates"`
-	Email           string   `json:"email" jsonapi:"attr,email"`
-	Connected       bool     `json:"connected" jsonapi:"attr,connected"`
-	Created         string   `json:"created-at" jsonapi:"attr,created-at"`
-	Firstname       string   `json:"first-name" jsonapi:"attr,first-name"`
-	Lastname        string   `json:"last-name" jsonapi:"attr,last-name"`
-	LinkedinUID     string   `json:"linkedin-uid" jsonapi:"attr,linkedin-uid"`
-	LinkedinURL     string   `json:"linkedin-url" jsonapi:"attr,linkedin-url"`
-	FacebookUID     string   `json:"facebook-id" jsonapi:"attr,facebook-id"`
-	Phone           string   `json:"phone" jsonapi:"attr,phone"`
-	Picture         string   `json:"picture" jsonapi:"attr,picture"`
-	Pitch           string   `json:"pitch" jsonapi:"attr,pitch"`
-	Sourced         bool     `json:"sourced" jsonapi:"attr,sourced"`
-	Tags            []string `json:"tags" jsonapi:"attr,tags"`
-	UpdatedAt       string   `json:"updated-at" jsonapi:"attr,updated-at"`
-	ReferringSite   string   `json:"referring-site" jsonapi:"attr,referringsite"`
-	ReferringURL    string   `json:"referring-url" jsonapi:"attr,referring-url"`
-	Resume          string   `json:"resume" jsonapi:"attr,resume"`
-	Unsubscribed    bool     `json:"unsubscribed" jsonapi:"attr,unsubscribed"`
-	FacebookProfile string   `json:"facebook-profile" jsonapi:"attr,facebook-profile"`
-	LinkedinProfile string   `json:"linkedin-profile" jsonapi:"attr,linkedin-profile"`
+	ID           string   `json:"-" jsonapi:"primary,candidates"`
+	Email        string   `json:"email" jsonapi:"attr,email"`
+	Connected    bool     `json:"connected" jsonapi:"attr,connected"`
+	Created      string   `json:"created-at" jsonapi:"attr,created-at"`
+	Firstname    string   `json:"first-name" jsonapi:"attr,first-name"`
+	Lastname     string   `json:"last-name" jsonapi:"attr,last-name"`
+	LinkedinUID  string   `json:"linkedin-uid" jsonapi:"attr,linkedin-uid"`
+	LinkedinURL  string   `json:"linkedin-url" jsonapi:"attr,linkedin-url"`
+	FacebookUID  string   `json:"facebook-id" jsonapi:"attr,facebook-id"`
+	Phone        string   `json:"phone" jsonapi:"attr,phone"`
+	Picture      string   `json:"picture" jsonapi:"attr,picture"`
+	Pitch        string   `json:"pitch" jsonapi:"attr,pitch"`
+	Sourced      bool     `json:"sourced" jsonapi:"attr,sourced"`
+	Tags         []string `json:"tags" jsonapi:"attr,tags"`
+	UpdatedAt    string   `json:"updated-at" jsonapi:"attr,updated-at"`
+	ReferringURL string   `json:"referring-url" jsonapi:"attr,referring-url"`
+	Resume       string   `json:"resume" jsonapi:"attr,resume"`
+	Unsubscribed bool     `json:"unsubscribed" jsonapi:"attr,unsubscribed"`
 }
 
 // Convert Candidate struct into JSON
@@ -168,7 +164,6 @@ func (t *TeamTailor) PostCandidate(c CandidateRequest) (*Candidate, error) {
 	if resp.StatusCode == 201 {
 		err = japi.UnmarshalPayload(resp.Body, &rc)
 		if err != nil {
-			log.Println("ERROR IN UNMARSHAL", err)
 			return &rc, err
 		}
 
@@ -214,7 +209,6 @@ func (t *TeamTailor) PostCandidateResume(c CandidateRequestResume) (*Candidate, 
 	if resp.StatusCode == 201 {
 		err = japi.UnmarshalPayload(resp.Body, &rc)
 		if err != nil {
-			log.Println("ERROR IN UNMARSHAL", err)
 			return &rc, err
 		}
 
@@ -312,16 +306,27 @@ func (t *TeamTailor) GetCandidates() ([]*Candidate, error) {
 	return cands, nil
 }
 
-func (t *TeamTailor) UpdateCandidate(c Candidate) {
-	log.Println("CANDIDATE INPUT: ", c)
+func (t *TeamTailor) UpdateCandidate(c Candidate) error {
 
 	data, err := jsonapi.Marshal(c)
 	if err != nil {
-		log.Println(err)
-		return
+		return err
+	}
+	postData := bytes.NewReader(data)
+
+	req, _ := http.NewRequest("PATCH", baseURL+"candidates/"+c.ID, postData)
+	t.SetHeaders(req)
+
+	resp, err := t.HTTPClient.Do(req)
+	if err != nil {
+		return err
 	}
 
-	log.Println("CANDIDATE OUTPUT: ", string(data))
+	if resp.StatusCode == 200 || resp.StatusCode == 201 {
+		return nil
+	}
+
+	return errors.New("Failed updating candidate")
 }
 
 // func DeleteCandidate
