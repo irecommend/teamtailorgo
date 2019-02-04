@@ -7,6 +7,7 @@ import (
 	"github.com/manyminds/api2go/jsonapi"
 )
 
+// TODO: Add picture which consists of substrings "standard" and "thumb" or "" if no picture for job
 type Job struct {
 	ID          string
 	Type        string   `json:"type"`
@@ -14,7 +15,6 @@ type Job struct {
 	EndDate     string   `json:"end-date"`
 	HumanStatus string   `json:"human-status"`
 	Internal    bool     `json:"internal"`
-	Picture     string   `json:"picture"`
 	Pinned      bool     `json:"pinned"`
 	StartDate   string   `json:"start-date"`
 	Status      string   `json:"status"`

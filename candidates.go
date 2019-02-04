@@ -3,6 +3,7 @@ package teamtailorgo
 import (
 	"bytes"
 	"encoding/json"
+	"log"
 	"net/http"
 	"reflect"
 	"time"
@@ -145,6 +146,7 @@ func (t *TeamTailor) PostCandidate(c CandidateRequest) (*Candidate, error) {
 
 	cand, err := candidateToJSON(c)
 	if err != nil {
+		log.Println("ERROR IN TURNING CANDIDATE INTO JSON")
 		return &rc, errors.New("Invalid structure of provided candidate")
 	}
 
@@ -157,6 +159,7 @@ func (t *TeamTailor) PostCandidate(c CandidateRequest) (*Candidate, error) {
 
 	resp, err := t.HTTPClient.Do(req)
 	if err != nil {
+		log.Println("ERROR IN MAKING REQUEST ", resp.StatusCode)
 		return &rc, err
 	}
 
@@ -164,6 +167,7 @@ func (t *TeamTailor) PostCandidate(c CandidateRequest) (*Candidate, error) {
 	if resp.StatusCode == 201 {
 		err = japi.UnmarshalPayload(resp.Body, &rc)
 		if err != nil {
+			log.Println("ERROR IN UNMARSHAL OF CODE 201")
 			return &rc, err
 		}
 
@@ -174,11 +178,13 @@ func (t *TeamTailor) PostCandidate(c CandidateRequest) (*Candidate, error) {
 		// Candidate existed in TeamTailor
 		cand, err := t.GetCandidateByEmail(c.Email)
 		if err != nil {
+			log.Println("ERROR IN GETTING CANDIDATE BY EMAIL")
 			return &rc, err
 		}
 
 		return cand, nil
 	} else {
+		log.Println("FAILED POSTING A CANDIDATE")
 		return &rc, errors.New("Failed posting candidate")
 	}
 }
@@ -257,6 +263,7 @@ func (t *TeamTailor) GetCandidateByEmail(email string) (*Candidate, error) {
 	// Get candidates
 	candidates, err := t.GetCandidates()
 	if err != nil {
+		log.Println("ERROR IN GETTING ALL CANDIDATES")
 		return candidate, err
 	}
 
@@ -269,6 +276,7 @@ func (t *TeamTailor) GetCandidateByEmail(email string) (*Candidate, error) {
 	}
 
 	if candidate.Email == "" {
+		log.Println("ERROR, DID NOT FIND ANY MATCHING EMAIL IN TT")
 		return candidate, errors.New("Could not find existing candidate by email")
 	}
 
