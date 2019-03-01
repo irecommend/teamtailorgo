@@ -95,6 +95,11 @@ func (t TeamTailor) CreateJobApplication(idjob string, idcand string) (JobApplic
 	if err != nil {
 		return ja, err
 	}
+
+	if resp.StatusCode == 422 {
+		return ja, errors.New("job-application for candidate and position already exist")
+	}
+
 	if resp.StatusCode != 201 {
 		return ja, errors.New("Failed to create job application")
 	}
