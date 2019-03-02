@@ -27,7 +27,7 @@ func (t TeamTailor) GetAllJobs() ([]Job, error) {
 
 	var jobs []Job
 
-	req, _ := http.NewRequest("GET", baseURL+"jobs", nil)
+	req, _ := http.NewRequest("GET", baseURL+"jobs?page%5Bsize%5D=30", nil)
 	req.Header.Set("Authorization", "Token token="+t.Token)
 	req.Header.Set("X-Api-Version", apiVersion)
 	req.Header.Set("Content-Type", contentType)
