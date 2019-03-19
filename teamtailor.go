@@ -55,6 +55,7 @@ func CheckAuthorization(token string) error {
 	if resp.StatusCode != 200 {
 		return errors.New("Request token is not valid")
 	}
+	defer resp.Body.Close()
 
 	return nil
 }

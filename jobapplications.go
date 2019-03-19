@@ -95,6 +95,7 @@ func (t TeamTailor) CreateJobApplication(idjob string, idcand string) (JobApplic
 	if err != nil {
 		return ja, err
 	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode == 422 {
 		return ja, errors.New("job-application for candidate and position already exist")
@@ -136,6 +137,7 @@ func (t TeamTailor) GetJobApplicationStage(id string) (*Stage, error) {
 	if err != nil {
 		return &stage, err
 	}
+	defer resp.Body.Close()
 
 	err = japi.UnmarshalPayload(resp.Body, &stage)
 	if err != nil {
@@ -143,8 +145,6 @@ func (t TeamTailor) GetJobApplicationStage(id string) (*Stage, error) {
 	}
 
 	stage.JobApplicationID = id
-
-	defer resp.Body.Close()
 
 	return &stage, nil
 }
