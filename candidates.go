@@ -159,6 +159,7 @@ func (t *TeamTailor) PostCandidate(c CandidateRequest) (*Candidate, error) {
 	if err != nil {
 		return &rc, err
 	}
+	defer resp.Body.Close()
 
 	// New candidate posted
 	if resp.StatusCode == 201 {
@@ -166,8 +167,6 @@ func (t *TeamTailor) PostCandidate(c CandidateRequest) (*Candidate, error) {
 		if err != nil {
 			return &rc, err
 		}
-
-		defer resp.Body.Close()
 
 		return &rc, nil
 	} else if resp.StatusCode == 422 {
@@ -204,6 +203,7 @@ func (t *TeamTailor) PostCandidateResume(c CandidateRequestResume) (*Candidate, 
 	if err != nil {
 		return &rc, err
 	}
+	defer resp.Body.Close()
 
 	// New candidate posted
 	if resp.StatusCode == 201 {
@@ -211,8 +211,6 @@ func (t *TeamTailor) PostCandidateResume(c CandidateRequestResume) (*Candidate, 
 		if err != nil {
 			return &rc, err
 		}
-
-		defer resp.Body.Close()
 
 		return &rc, nil
 	} else if resp.StatusCode == 422 {
@@ -239,13 +237,12 @@ func (t *TeamTailor) GetCandidate(id string) (Candidate, error) {
 	if err != nil {
 		return cand, err
 	}
+	defer resp.Body.Close()
 
 	err = japi.UnmarshalPayload(resp.Body, &cand)
 	if err != nil {
 		return cand, err
 	}
-
-	defer resp.Body.Close()
 
 	return cand, nil
 }
@@ -261,6 +258,7 @@ func (t *TeamTailor) GetCandidateByEmail(email string) (*Candidate, error) {
 	if err != nil {
 		return cand, err
 	}
+	defer resp.Body.Close()
 
 	candidates, err := japi.UnmarshalManyPayload(resp.Body, reflect.TypeOf(new(Candidate)))
 	if err != nil {
@@ -268,8 +266,6 @@ func (t *TeamTailor) GetCandidateByEmail(email string) (*Candidate, error) {
 	}
 
 	cand = candidates[0].(*Candidate)
-
-	defer resp.Body.Close()
 
 	return cand, nil
 
@@ -288,6 +284,7 @@ func (t *TeamTailor) GetCandidates() ([]*Candidate, error) {
 	if err != nil {
 		return cands, err
 	}
+	defer resp.Body.Close()
 
 	candidates, err := japi.UnmarshalManyPayload(resp.Body, reflect.TypeOf(new(Candidate)))
 	if err != nil {
@@ -298,8 +295,6 @@ func (t *TeamTailor) GetCandidates() ([]*Candidate, error) {
 		c, _ := candidate.(*Candidate)
 		cands = append(cands, c)
 	}
-
-	defer resp.Body.Close()
 
 	return cands, nil
 }
@@ -319,6 +314,7 @@ func (t *TeamTailor) UpdateCandidate(c Candidate) error {
 	if err != nil {
 		return err
 	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode == 200 || resp.StatusCode == 201 {
 		return nil

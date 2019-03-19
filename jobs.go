@@ -36,6 +36,7 @@ func (t TeamTailor) GetAllJobs() ([]Job, error) {
 	if err != nil {
 		return jobs, err
 	}
+	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
@@ -46,8 +47,6 @@ func (t TeamTailor) GetAllJobs() ([]Job, error) {
 	if err != nil {
 		return jobs, err
 	}
-
-	defer resp.Body.Close()
 
 	return jobs, nil
 }
@@ -66,6 +65,7 @@ func (t TeamTailor) GetJob(id string) (Job, error) {
 	if err != nil {
 		return job, err
 	}
+	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
@@ -76,8 +76,6 @@ func (t TeamTailor) GetJob(id string) (Job, error) {
 	if err != nil {
 		return job, err
 	}
-
-	defer resp.Body.Close()
 
 	return job, nil
 }
