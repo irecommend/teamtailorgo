@@ -1,11 +1,25 @@
 package teamtailorgo
 
 import (
+	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 
 	"github.com/manyminds/api2go/jsonapi"
 )
+
+// MetaTags checks how many job objects and how many pages exist in the
+// Teamtailor instance. Used if more than 30 jobs exist for a company.
+type MetaTags struct {
+	RecordCount int `json:"record-count"`
+	PageCount   int `json:"page-count"`
+}
+
+// Meta is a wrapper for meta tags. Needed in order to Marshal()
+type Meta struct {
+	MetaTags *MetaTags `json:"meta"`
+}
 
 // TODO: Add picture which consists of substrings "standard" and "thumb" or "" if no picture for job
 type Job struct {
@@ -23,6 +37,8 @@ type Job struct {
 	Created     string   `json:"created-at"`
 }
 
+// GetAllJobs fetches the 30 jobs that are on the first page of Teamtailor response.
+// If there are more than 30 jobs to fetch, use GetAllJobPages().
 func (t TeamTailor) GetAllJobs() ([]Job, error) {
 
 	var jobs []Job
@@ -46,6 +62,62 @@ func (t TeamTailor) GetAllJobs() ([]Job, error) {
 	err = jsonapi.Unmarshal(body, &jobs)
 	if err != nil {
 		return jobs, err
+	}
+
+	return jobs, nil
+}
+
+// GetAllJobPages returns all jobs for a company. Used if page count is greater
+// than one and multiple GET-requests are needed to get all jobs.
+func (t TeamTailor) GetAllJobPages() ([]Job, error) {
+
+	var jobs []Job
+	var meta Meta
+
+	// Begin request to get Meta tags
+	req, _ := http.NewRequest("GET", baseURL+"jobs", nil)
+	req.Header.Set("Authorization", "Token token="+t.Token)
+	req.Header.Set("X-Api-Version", apiVersion)
+	req.Header.Set("Content-Type", contentType)
+
+	resp, err := t.HTTPClient.Do(req)
+	if err != nil {
+		return jobs, err
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return jobs, err
+	}
+
+	err = json.Unmarshal(body, &meta)
+	if err != nil {
+		return jobs, err
+	}
+
+	// Begin request to get all pages of jobs
+	for n := 1; n <= meta.MetaTags.PageCount; n++ {
+		req, _ := http.NewRequest("GET", baseURL+"jobs?page%5Bsize%5D=30&page%5Bnumber%5D="+strconv.Itoa(n), nil)
+		req.Header.Set("Authorization", "Token token="+t.Token)
+		req.Header.Set("X-Api-Version", apiVersion)
+		req.Header.Set("Content-Type", contentType)
+
+		resp, err := t.HTTPClient.Do(req)
+		if err != nil {
+			return jobs, err
+		}
+		defer resp.Body.Close()
+
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return jobs, err
+		}
+
+		err = jsonapi.Unmarshal(body, &jobs)
+		if err != nil {
+			return jobs, err
+		}
 	}
 
 	return jobs, nil
