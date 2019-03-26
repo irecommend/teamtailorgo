@@ -38,7 +38,7 @@ type Job struct {
 }
 
 // GetFirstJobPage fetches the 30 jobs that are on the first page of Teamtailor response.
-// If there are more than 30 jobs to fetch, use GetAllJobPages().
+// If there are more than 30 jobs to fetch from Teamtailor, use GetAllJobs().
 func (t TeamTailor) GetFirstJobPage() ([]Job, error) {
 
 	var jobs []Job
@@ -67,14 +67,14 @@ func (t TeamTailor) GetFirstJobPage() ([]Job, error) {
 	return jobs, nil
 }
 
-// GetAllJobs returns all jobs for a company. Used if page count is greater
+// GetAllJobs returns all jobs for a company. Used if page count in Teamtailor is greater
 // than one and multiple GET-requests are needed to get all jobs.
-func (t TeamTailor) GetAllJob() ([]Job, error) {
+func (t TeamTailor) GetAllJobs() ([]Job, error) {
 
 	var jobs []Job
 	var meta Meta
 
-	// Begin request to get Meta tags
+	// Begin request to get Meta tags to find record and page count.
 	req, _ := http.NewRequest("GET", baseURL+"jobs", nil)
 	req.Header.Set("Authorization", "Token token="+t.Token)
 	req.Header.Set("X-Api-Version", apiVersion)
