@@ -37,9 +37,9 @@ type Job struct {
 	Created     string   `json:"created-at"`
 }
 
-// GetAllJobs fetches the 30 jobs that are on the first page of Teamtailor response.
+// GetFirstJobPage fetches the 30 jobs that are on the first page of Teamtailor response.
 // If there are more than 30 jobs to fetch, use GetAllJobPages().
-func (t TeamTailor) GetAllJobs() ([]Job, error) {
+func (t TeamTailor) GetFirstJobPage() ([]Job, error) {
 
 	var jobs []Job
 
@@ -67,9 +67,9 @@ func (t TeamTailor) GetAllJobs() ([]Job, error) {
 	return jobs, nil
 }
 
-// GetAllJobPages returns all jobs for a company. Used if page count is greater
+// GetAllJobs returns all jobs for a company. Used if page count is greater
 // than one and multiple GET-requests are needed to get all jobs.
-func (t TeamTailor) GetAllJobPages() ([]Job, error) {
+func (t TeamTailor) GetAllJob() ([]Job, error) {
 
 	var jobs []Job
 	var meta Meta
