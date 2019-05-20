@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 
 	japi "github.com/google/jsonapi"
 	"github.com/manyminds/api2go/jsonapi"
@@ -102,7 +103,7 @@ func (t TeamTailor) CreateJobApplication(idjob string, idcand string) (JobApplic
 	}
 
 	if resp.StatusCode != 201 {
-		return ja, errors.New("Failed to create job application")
+		return ja, errors.New("Failed to create job application, got response code " + strconv.Itoa(resp.StatusCode))
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)

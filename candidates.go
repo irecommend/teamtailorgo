@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"reflect"
+	"strconv"
 	"time"
 
 	japi "github.com/google/jsonapi"
@@ -178,7 +179,7 @@ func (t *TeamTailor) PostCandidate(c CandidateRequest) (*Candidate, error) {
 
 		return cand, nil
 	} else {
-		return &rc, errors.New("Failed posting candidate")
+		return &rc, errors.New("Failed posting candidate, got response code " + strconv.Itoa(resp.StatusCode))
 	}
 }
 
@@ -222,7 +223,7 @@ func (t *TeamTailor) PostCandidateResume(c CandidateRequestResume) (*Candidate, 
 
 		return cand, nil
 	} else {
-		return &rc, errors.New("Failed posting candidate")
+		return &rc, errors.New("Failed posting candidate, got response code " + strconv.Itoa(resp.StatusCode))
 	}
 }
 
@@ -320,7 +321,7 @@ func (t *TeamTailor) UpdateCandidate(c Candidate) error {
 		return nil
 	}
 
-	return errors.New("Failed updating candidate")
+	return errors.New("Failed updating candidate, got response code " + strconv.Itoa(resp.StatusCode))
 }
 
 // func DeleteCandidate
