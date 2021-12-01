@@ -1,6 +1,9 @@
 package teamtailorgo
 
 import (
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"net/http"
 
 	"github.com/pkg/errors"
@@ -8,7 +11,7 @@ import (
 
 const (
 	baseURL     = "https://api.teamtailor.com/v1/"
-	apiVersion  = "20161108"
+	apiVersion  = "20211201"
 	contentType = "application/vnd.api+json"
 )
 
@@ -21,6 +24,21 @@ type TeamTailor struct {
 	Token      string `json:"token" bson:"token"`
 	APIversion string `json:"X-Api-Version" bson:"X-Api-Version"`
 	HTTPClient *http.Client
+}
+
+type TeamTailorErrorResponse struct {
+	Errors []struct {
+		Title  string `json:"title"`
+		Detail string `json:"detail"`
+		Code   string `json:"code"`
+		Status string `json:"status"`
+	} `json:"errors"`
+	Meta struct {
+		Texts struct {
+			Prev string `json:"prev"`
+			Next string `json:"next"`
+		} `json:"texts"`
+	} `json:"meta"`
 }
 
 // Create TeamTailor instance
@@ -58,4 +76,30 @@ func CheckAuthorization(token string) error {
 	defer resp.Body.Close()
 
 	return nil
+}
+
+func verifyResponse(resp *http.Response) error {
+	if !isSuccessStatusCode(resp.StatusCode) {
+		if resp.StatusCode == 403 || resp.StatusCode == 401 {
+			return fmt.Errorf("returning status code [%d], invalid token", resp.StatusCode)
+		}
+
+		reqBody, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return fmt.Errorf("returning status code [%d] indicates failure but failed to read error response with error: %s", resp.StatusCode, err)
+		}
+
+		var ttErrorResponse TeamTailorErrorResponse
+		err = json.Unmarshal(reqBody, &ttErrorResponse)
+		if err != nil {
+			return fmt.Errorf("returning status code [%d] indicates failure but failed to unmarshal error response with error: %s", resp.StatusCode, err)
+		}
+
+		return fmt.Errorf("failure with error: %s", ttErrorResponse.Errors[0].Detail)
+	}
+	return nil
+}
+
+func isSuccessStatusCode(code int) bool {
+	return code == 200 || code == 201
 }

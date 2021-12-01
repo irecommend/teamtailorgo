@@ -54,6 +54,11 @@ func (t TeamTailor) GetFirstJobPage() ([]Job, error) {
 	}
 	defer resp.Body.Close()
 
+	err = verifyResponse(resp)
+	if err != nil {
+		return jobs, err
+	}
+
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return jobs, err
@@ -87,6 +92,11 @@ func (t TeamTailor) GetAllJobs() ([]Job, error) {
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return jobs, err
+	}
+
+	err = verifyResponse(resp)
 	if err != nil {
 		return jobs, err
 	}
@@ -138,6 +148,11 @@ func (t TeamTailor) GetJob(id string) (Job, error) {
 		return job, err
 	}
 	defer resp.Body.Close()
+
+	err = verifyResponse(resp)
+	if err != nil {
+		return job, err
+	}
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
