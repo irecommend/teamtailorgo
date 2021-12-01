@@ -101,11 +101,12 @@ func (t TeamTailor) CreateJobApplication(idjob string, idcand string) (JobApplic
 		return ja, errors.New("job-application for candidate and position already exist")
 	}
 
-	if resp.StatusCode != 201 {
-		return ja, errors.New("Failed to create job application")
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return ja, err
 	}
 
-	body, err := ioutil.ReadAll(resp.Body)
+	err = verifyResponse(resp)
 	if err != nil {
 		return ja, err
 	}
@@ -138,6 +139,11 @@ func (t TeamTailor) GetJobApplicationStage(id string) (*Stage, error) {
 		return &stage, err
 	}
 	defer resp.Body.Close()
+
+	err = verifyResponse(resp)
+	if err != nil {
+		return &stage, err
+	}
 
 	err = japi.UnmarshalPayload(resp.Body, &stage)
 	if err != nil {

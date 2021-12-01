@@ -3,6 +3,8 @@ package teamtailorgo
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"net/http"
 	"reflect"
 	"time"
@@ -170,13 +172,29 @@ func (t *TeamTailor) PostCandidate(c CandidateRequest) (*Candidate, error) {
 
 		return &rc, nil
 	} else if resp.StatusCode == 422 {
-		// Candidate existed in TeamTailor
-		cand, err := t.GetCandidateByEmail(c.Email)
+
+		reqBody, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			return &rc, err
+			return &rc, fmt.Errorf("returning status code [%d] indicates failure but failed to read error response with error: %s", resp.StatusCode, err)
 		}
 
-		return cand, nil
+		var ttErrorResponse TeamTailorErrorResponse
+		err = json.Unmarshal(reqBody, &ttErrorResponse)
+		if err != nil {
+			return &rc, fmt.Errorf("returning status code [%d] indicates failure but failed to unmarshal error response with error: %s", resp.StatusCode, err)
+		}
+
+		if ttErrorResponse.Errors[0].Title == "has already been taken" {
+
+			// Candidate existed in TeamTailor
+			cand, err := t.GetCandidateByEmail(c.Email)
+			if err != nil {
+				return &rc, err
+			}
+			return cand, nil
+		}
+
+		return &rc, fmt.Errorf("failure with error: %s", ttErrorResponse.Errors[0].Detail)
 	} else {
 		return &rc, errors.New("Failed posting candidate")
 	}
@@ -214,13 +232,30 @@ func (t *TeamTailor) PostCandidateResume(c CandidateRequestResume) (*Candidate, 
 
 		return &rc, nil
 	} else if resp.StatusCode == 422 {
-		// Candidate existed in TeamTailor
-		cand, err := t.GetCandidateByEmail(c.Email)
+
+		reqBody, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			return &rc, err
+			return &rc, fmt.Errorf("returning status code [%d] indicates failure but failed to read error response with error: %s", resp.StatusCode, err)
 		}
 
-		return cand, nil
+		var ttErrorResponse TeamTailorErrorResponse
+		err = json.Unmarshal(reqBody, &ttErrorResponse)
+		if err != nil {
+			return &rc, fmt.Errorf("returning status code [%d] indicates failure but failed to unmarshal error response with error: %s", resp.StatusCode, err)
+		}
+
+		if ttErrorResponse.Errors[0].Title == "has already been taken" {
+
+			// Candidate existed in TeamTailor
+			cand, err := t.GetCandidateByEmail(c.Email)
+			if err != nil {
+				return &rc, err
+			}
+			return cand, nil
+		}
+
+		return &rc, fmt.Errorf("failure with error: %s", ttErrorResponse.Errors[0].Detail)
+
 	} else {
 		return &rc, errors.New("Failed posting candidate")
 	}
@@ -238,6 +273,11 @@ func (t *TeamTailor) GetCandidate(id string) (Candidate, error) {
 		return cand, err
 	}
 	defer resp.Body.Close()
+
+	err = verifyResponse(resp)
+	if err != nil {
+		return cand, err
+	}
 
 	err = japi.UnmarshalPayload(resp.Body, &cand)
 	if err != nil {
@@ -260,12 +300,21 @@ func (t *TeamTailor) GetCandidateByEmail(email string) (*Candidate, error) {
 	}
 	defer resp.Body.Close()
 
+	err = verifyResponse(resp)
+	if err != nil {
+		return cand, err
+	}
+
 	candidates, err := japi.UnmarshalManyPayload(resp.Body, reflect.TypeOf(new(Candidate)))
 	if err != nil {
 		return cand, err
 	}
 
-	cand = candidates[0].(*Candidate)
+	if len(candidates) > 0 {
+		cand = candidates[0].(*Candidate)
+	} else {
+		return cand, errors.Errorf("no candidate found with email %s", email)
+	}
 
 	return cand, nil
 
@@ -285,6 +334,11 @@ func (t *TeamTailor) GetCandidates() ([]*Candidate, error) {
 		return cands, err
 	}
 	defer resp.Body.Close()
+
+	err = verifyResponse(resp)
+	if err != nil {
+		return cands, err
+	}
 
 	candidates, err := japi.UnmarshalManyPayload(resp.Body, reflect.TypeOf(new(Candidate)))
 	if err != nil {
@@ -315,6 +369,11 @@ func (t *TeamTailor) UpdateCandidate(c Candidate) error {
 		return err
 	}
 	defer resp.Body.Close()
+
+	err = verifyResponse(resp)
+	if err != nil {
+		return err
+	}
 
 	if resp.StatusCode == 200 || resp.StatusCode == 201 {
 		return nil
