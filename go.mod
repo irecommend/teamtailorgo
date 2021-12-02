@@ -1,4 +1,4 @@
-module irecommend/teamtailorgo
+module github.com/irecommend/teamtailorgo
 
 go 1.17
 
