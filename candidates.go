@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"reflect"
 	"time"
 
@@ -291,7 +292,10 @@ func (t *TeamTailor) GetCandidate(id string) (Candidate, error) {
 func (t *TeamTailor) GetCandidateByEmail(email string) (*Candidate, error) {
 
 	var cand *Candidate
-	req, _ := http.NewRequest("GET", baseURL+"candidates?filter[email]="+email, nil)
+
+	escapedEmail := url.QueryEscape(email)
+
+	req, _ := http.NewRequest("GET", baseURL+"candidates?filter[email]="+escapedEmail, nil)
 	t.SetHeaders(req)
 
 	resp, err := t.HTTPClient.Do(req)
