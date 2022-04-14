@@ -1,8 +1,6 @@
 # teamtailorgo
 Connection to the TeamTailor API (partial)
 
-### Updates in V2
-- Switched to go modules
-- Improved error handling
-- Added tests
+# Publishing a new version
+https://go.dev/doc/modules/publishing
   
