@@ -26,7 +26,7 @@ func TestGetCandidate_NotExistingId_ShouldGiveError(t *testing.T) {
 func TestGetCandidateByEmail(t *testing.T) {
 	SetUpTeamTailorTest()
 	candidate, err := teamtailorconnection.GetCandidateByEmail(existingCandidateEmail)
-	assert.Equal(t, err, nil)
+	assert.Equal(t, nil, err)
 	assert.NotEqual(t, "", candidate.ID)
 }
 
