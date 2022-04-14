@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"reflect"
+	"strings"
 	"time"
 
 	japi "github.com/google/jsonapi"
@@ -293,7 +294,10 @@ func (t *TeamTailor) GetCandidateByEmail(email string) (*Candidate, error) {
 
 	var cand *Candidate
 
-	escapedEmail := url.QueryEscape(email)
+	// TeamTailor will not find the email if containing capitalized letters
+	lowerEmail := strings.ToLower(email)
+	// TeamTailor will not find the email if containing non escaped characters
+	escapedEmail := url.QueryEscape(lowerEmail)
 
 	req, _ := http.NewRequest("GET", baseURL+"candidates?filter[email]="+escapedEmail, nil)
 	t.SetHeaders(req)
