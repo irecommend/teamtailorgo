@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"reflect"
@@ -175,7 +175,7 @@ func (t *TeamTailor) PostCandidate(c CandidateRequest) (*Candidate, error) {
 		return &rc, nil
 	} else if resp.StatusCode == 422 {
 
-		reqBody, err := ioutil.ReadAll(resp.Body)
+		reqBody, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return &rc, fmt.Errorf("returning status code [%d] indicates failure but failed to read error response with error: %s", resp.StatusCode, err)
 		}
@@ -235,7 +235,7 @@ func (t *TeamTailor) PostCandidateResume(c CandidateRequestResume) (*Candidate, 
 		return &rc, nil
 	} else if resp.StatusCode == 422 {
 
-		reqBody, err := ioutil.ReadAll(resp.Body)
+		reqBody, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return &rc, fmt.Errorf("returning status code [%d] indicates failure but failed to read error response with error: %s", resp.StatusCode, err)
 		}

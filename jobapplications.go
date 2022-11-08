@@ -3,7 +3,7 @@ package teamtailorgo
 import (
 	"bytes"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 
 	japi "github.com/google/jsonapi"
@@ -101,7 +101,7 @@ func (t TeamTailor) CreateJobApplication(idjob string, idcand string) (JobApplic
 		return ja, errors.New("job-application for candidate and position already exist")
 	}
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return ja, err
 	}

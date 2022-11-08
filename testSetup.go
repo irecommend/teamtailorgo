@@ -8,7 +8,7 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
-//Update with suitable data to run your tests
+// Update with suitable data to run your tests
 const (
 	testToken                   = ""
 	existingCandidateEmail      = ""
