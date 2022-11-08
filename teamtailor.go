@@ -3,7 +3,7 @@ package teamtailorgo
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 
 	"github.com/pkg/errors"
@@ -84,7 +84,7 @@ func verifyResponse(resp *http.Response) error {
 			return fmt.Errorf("returning status code [%d], invalid token", resp.StatusCode)
 		}
 
-		reqBody, err := ioutil.ReadAll(resp.Body)
+		reqBody, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return fmt.Errorf("returning status code [%d] indicates failure but failed to read error response with error: %s", resp.StatusCode, err)
 		}

@@ -2,7 +2,7 @@ package teamtailorgo
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strconv"
 
@@ -59,7 +59,7 @@ func (t TeamTailor) GetFirstJobPage() ([]Job, error) {
 		return jobs, err
 	}
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return jobs, err
 	}
@@ -91,7 +91,7 @@ func (t TeamTailor) GetAllJobs() ([]Job, error) {
 	}
 	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return jobs, err
 	}
@@ -119,7 +119,7 @@ func (t TeamTailor) GetAllJobs() ([]Job, error) {
 		}
 		defer resp.Body.Close()
 
-		body, err := ioutil.ReadAll(resp.Body)
+		body, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return jobs, err
 		}
@@ -154,7 +154,7 @@ func (t TeamTailor) GetJob(id string) (Job, error) {
 		return job, err
 	}
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return job, err
 	}
